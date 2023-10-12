@@ -356,6 +356,23 @@ async def capture_controller_events():
                     if event.type in [e.EV_FF, e.EV_UINPUT]:
                         continue
 
+                    active_keys = handycon.controller_device.active_keys()
+                    button_on = event.value
+                    this_button = None
+                    button3 = handycon.button_map["button3"]  # Default ESC
+
+                    # 桌面模式下，按下左摇杆和右摇杆，模拟按下ESC键
+                    if active_keys == [317, 318] and button_on == 1 and button3 not in handycon.event_queue:
+                        is_deckui = handycon.steam_ifrunning_deckui("")
+                        if not is_deckui:
+                            handycon.logger.info("桌面模式下, 按下左摇杆和右摇杆, 模拟按下ESC键")
+                            await handycon.handle_key_down(event, button3)
+                    elif active_keys == [] and event.code in [317, 318] and button_on == 0 and button3 in handycon.event_queue:
+                        await handycon.handle_key_up(event, button3)
+                    
+                    if handycon.last_button:
+                        await handycon.handle_key_up(event, handycon.last_button)
+
                     # Output the event.
                     emit_event(event)
             except Exception as err:
@@ -413,6 +430,7 @@ def handle_power_action():
     handycon.logger.debug(f"Power Action: {handycon.power_action}")
     match handycon.power_action:
         case "Suspend":
+            handycon.restore_sleep_conf()
             # For DeckUI Sessions
             is_deckui = handycon.steam_ifrunning_deckui("steam://shortpowerpress")
 
@@ -552,6 +570,9 @@ async def emit_now(seed_event, event_list, value):
             case "Open Chimera":
                 handycon.logger.debug("Open Chimera")
                 handycon.launch_chimera()
+            case "Special Suspend":
+                handycon.logger.debug("Special Suspend")
+                handycon.special_suspend()
             case "Toggle Gyro":
                 handycon.logger.debug("Toggle Gyro is not currently enabled")
             case "Toggle Mouse Mode":
@@ -649,6 +670,6 @@ def make_controller():
             name='Handheld Controller',
             bustype=0x3,
             vendor=0x045e,
-            product=0x028e,
-            version=0x110
+            product=0x02ea,
+            version=0x301
             )

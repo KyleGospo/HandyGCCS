@@ -43,7 +43,7 @@ async def process_event(seed_event, active_keys):
     # BUTTON 1 (Default: Screenshot) WIN button
     if active_keys == [125] and button_on == 1 and button1 not in handycon.event_queue and handycon.shutdown == False:
         await handycon.handle_key_down(seed_event, button1)
-    elif active_keys == [] and seed_event.code == 125 and button_on == 0 and button6 in handycon.event_queue:
+    elif active_keys == [] and seed_event.code == 125 and button_on == 0 and button1 in handycon.event_queue:
         await handycon.handle_key_up(seed_event, button1)
 
     # BUTTON 2 (Default: QAM) TM Button

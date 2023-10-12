@@ -32,6 +32,7 @@ async def process_event(seed_event, active_keys):
     button3 = handycon.button_map["button3"]  # Default ESC
     button4 = handycon.button_map["button4"]  # Default OSK
     button5 = handycon.button_map["button5"]  # Default MODE
+    button13 = handycon.button_map["button13"]
 
     ## Loop variables
     button_on = seed_event.value
@@ -41,10 +42,18 @@ async def process_event(seed_event, active_keys):
         handycon.emit_event(seed_event)
 
     # BUTTON 1 (Default: Screenshot/Launch Chiumera) LC Button
-    if active_keys == [97, 125, 185] and button_on == 1 and button1 not in handycon.event_queue:
-        await handycon.handle_key_down(seed_event, button1)
-    elif active_keys == [] and seed_event.code in [97, 125, 185] and button_on == 0 and button1 in handycon.event_queue:
-        await handycon.handle_key_up(seed_event, button1)
+    # if active_keys == [97, 125, 185] and button_on == 1 and button1 not in handycon.event_queue:
+    #     await handycon.handle_key_down(seed_event, button1)
+    # elif active_keys == [] and seed_event.code in [97, 125, 185] and button_on == 0 and button1 in handycon.event_queue:
+    #     await handycon.handle_key_up(seed_event, button1)
+
+    action_button = button1
+    if handycon.enable_special_suspend():
+        action_button = button13
+    if active_keys == [97, 125, 185] and button_on == 1 and action_button not in handycon.event_queue:
+        await handycon.handle_key_down(seed_event, action_button)
+    elif active_keys == [] and seed_event.code in [97, 125, 185] and button_on == 0 and action_button in handycon.event_queue:
+        await handycon.handle_key_up(seed_event, action_button)
 
     # BUTTON 2 (Default: QAM) Small Button
     if active_keys == [32, 125] and button_on == 1 and button2 not in handycon.event_queue:
