@@ -1,11 +1,12 @@
 Name:           HandyGCCS
 %global _servicename handycon
-Version:        2.0.0
+%global upstream_version 2.0.0
+Version:        %{upstream_version}.{{{ git_dir_version }}}
 Release:        1%{?dist}
 Summary:        Handheld Game Console Controller Support (Handy Geeks) for Linux
 
 License:        GPLv3
-URL:            https://github.com/ShadowBlip/%{name}
+URL:            https://github.com/KyleGospo/%{name}
 Source:         %{url}/archive/refs/heads/main.zip
 Patch0:         fedora.patch
 
@@ -46,7 +47,7 @@ rm -r %{buildroot}%{python3_sitelib}/bin
 %files
 /usr/bin/handycon
 %{python3_sitelib}/%{_servicename}
-%{python3_sitelib}/%{_servicename}-%{version}.dist-info
+%{python3_sitelib}/%{_servicename}-%{upstream_version}.dist-info
 /usr/lib/systemd/system/handycon.service
 /usr/lib/udev/hwdb.d/59-handygccs-ayaneo.hwdb
 /usr/lib/udev/rules.d/60-handycon.rules
@@ -56,3 +57,6 @@ rm -r %{buildroot}%{python3_sitelib}/bin
 /usr/bin/systemctl enable %{_servicename}
 /usr/bin/systemd-hwdb update
 /usr/sbin/udevadm control -R
+
+%changelog
+{{{ git_dir_changelog }}}
