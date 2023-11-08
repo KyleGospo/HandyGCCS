@@ -48,23 +48,6 @@ def set_handycon(handheld_controller):
     handycon = handheld_controller
 
 
-default_config_map = {
-            "button1": "SCR",
-            "button2": "QAM",
-            "button3": "ESC",
-            "button4": "OSK",
-            "button5": "MODE",
-            "button6": "OPEN_CHIMERA",
-            "button7": "TOGGLE_PERFORMANCE",
-            "button8": "MODE",
-            "button9": "TOGGLE_MOUSE",
-            "button10": "ALT_TAB",
-            "button11": "KILL",
-            "button12": "TOGGLE_GYRO",
-            "button13": "SPECIAL_SUSPEND",
-            "power_button": "SUSPEND",
-            }
-
 # Capture the username and home path of the user who has been logged in the longest.
 def get_user():
     global handycon
@@ -303,21 +286,9 @@ def get_config():
     if os.path.exists(CONFIG_PATH):
         handycon.logger.info(f"Loading existing config: {CONFIG_PATH}")
         handycon.config.read(CONFIG_PATH)
-
-        need_rewrite = False
-        for key in default_config_map.keys():
-            if not key in handycon.config["Button Map"]:
-                handycon.logger.info(f"Adding new key to config: {key}")
-                # add new key to config
-                handycon.config["Button Map"][key] = default_config_map[key]
-                need_rewrite = True
-
-        # if not "power_button" in handycon.config["Button Map"]:
-        #     handycon.logger.info("Config file out of date. Generating new config.")
-        #     set_default_config()
-        #     need_rewrite = True
-        
-        if need_rewrite:
+        if not "power_button" in handycon.config["Button Map"]:
+            handycon.logger.info("Config file out of date. Generating new config.")
+            set_default_config()
             write_config()
     else:
         set_default_config()
@@ -341,7 +312,6 @@ def map_config():
     "button10": EVENT_MAP[handycon.config["Button Map"]["button10"]],
     "button11": EVENT_MAP[handycon.config["Button Map"]["button11"]],
     "button12": EVENT_MAP[handycon.config["Button Map"]["button12"]],
-    "button13": EVENT_MAP[handycon.config["Button Map"]["button13"]],
     }
     handycon.power_action = POWER_ACTION_MAP[handycon.config["Button Map"]["power_button"]][0]
 
@@ -349,7 +319,21 @@ def map_config():
 # Sets the default configuration.
 def set_default_config():
     global handycon
-    handycon.config["Button Map"] = default_config_map
+    handycon.config["Button Map"] = {
+            "button1": "SCR",
+            "button2": "QAM",
+            "button3": "ESC",
+            "button4": "OSK",
+            "button5": "MODE",
+            "button6": "OPEN_CHIMERA",
+            "button7": "TOGGLE_PERFORMANCE",
+            "button8": "MODE",
+            "button9": "TOGGLE_MOUSE",
+            "button10": "ALT_TAB",
+            "button11": "KILL",
+            "button12": "TOGGLE_GYRO",
+            "power_button": "SUSPEND",
+            }
 
 
 # Writes current config to disk.
@@ -409,37 +393,10 @@ def steam_ifrunning_deckui(cmd):
 
 def launch_chimera():
     global handycon
+
     if not handycon.HAS_CHIMERA_LAUNCHER:
         return
     subprocess.run([ "su", handycon.USER, "-c", CHIMERA_LAUNCHER_PATH ])
-
-def special_suspend():
-    handycon.logger.info("Special suspend requested.")
-    overwite_sleep_conf(True)
-    # For DeckUI Sessions
-    is_deckui = handycon.steam_ifrunning_deckui("steam://shortpowerpress")
-
-    # For BPM and Desktop sessions
-    if not is_deckui:
-        os.system('systemctl suspend')
-
-def overwite_sleep_conf(enable: bool):
-    filename = "/etc/systemd/sleep.conf.d/sleep.conf"
-    bak_filename = "/etc/systemd/sleep.conf.bak"
-
-    if enable:
-        # move file to bak
-        if os.path.isfile(filename):
-            os.rename(filename, bak_filename)
-    else:
-        # move bak to file
-        if os.path.isfile(bak_filename):
-            os.rename(bak_filename, filename)
-    os.system("systemctl kill -s HUP systemd-logind")
-
-def enable_special_suspend():
-    filepath = "/etc/handygccs/special_suspend"
-    return os.path.isfile(filepath)
 
 
 def is_process_running(name) -> bool:
@@ -451,12 +408,3 @@ def is_process_running(name) -> bool:
     handycon.logger.debug(f'Process {name} is NOT running.')
     return False
 
-def bios_version():
-    # read bios version from /sys/class/dmi/id/bios_version
-    bios_version = None
-    try:
-        with open('/sys/class/dmi/id/bios_version', 'r') as f:
-            bios_version = f.readline().strip()
-    except:
-        pass
-    return bios_version
