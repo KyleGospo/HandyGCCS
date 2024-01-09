@@ -145,6 +145,7 @@ def id_system():
 
     elif system_id in (
         "AIR Plus",
+        "SLIDE",
         ):
         if cpu_vendor == "GenuineIntel":
             handycon.system_type = "AYA_GEN7"
