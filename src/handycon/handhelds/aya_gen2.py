@@ -35,11 +35,15 @@ async def process_event(seed_event, active_keys):
     if seed_event.code in [e.KEY_VOLUMEDOWN, e.KEY_VOLUMEUP]:
         handycon.emit_event(seed_event)
 
-    # BUTTON 2 (Default: QAM) Small Button
+    # BUTTON 2 (Default: QAM) Small Button Short Press
     if active_keys in [[40, 133], [32, 125]] and button_on == 1 and button2 not in handycon.event_queue:
         await handycon.handle_key_down(seed_event, button2)
     elif active_keys == [] and seed_event.code in [32, 40, 125, 133] and button_on == 0 and button2 in handycon.event_queue:
         await handycon.handle_key_up(seed_event, button2)
+
+    # BUTTON 4 (Default: OSK) Small button Long Press
+    # This button spams up/down events, useless for now.
+    # active_keys == [97, 100, 111]
 
     # BUTTON 5 (Default: MODE) Big button
     if active_keys in [[96, 105, 133], [88, 97, 125]] and button_on == 1 and button5 not in handycon.event_queue:
@@ -47,9 +51,6 @@ async def process_event(seed_event, active_keys):
     elif active_keys == [] and seed_event.code in [88, 96, 97, 105, 125, 133] and button_on == 0 and button5 in handycon.event_queue:
         await handycon.handle_key_up(seed_event, button5)
 
-    # Handle L_META from power button
-    elif active_keys == [] and seed_event.code == 125 and button_on == 0 and handycon.event_queue == [] and handycon.shutdown == True:
-        handycon.shutdown = False
-
+    # Clean up old button presses.
     if handycon.last_button:
         await handycon.handle_key_up(seed_event, handycon.last_button)
